@@ -11,6 +11,8 @@ ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 : "${SSH_HOST:=127.0.0.1}"
 : "${SSH_PORT:=2222}"
 : "${SSH_TIMEOUT_SECONDS:=7200}"
+: "${WAIT_FOR_SSH:=1}"
+: "${SKIP_NODE_AND_CODEX:=0}"
 
 log() { printf "[%s] %s\n" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 
@@ -68,6 +70,27 @@ ensure_docker() {
     as_root sh /tmp/get-docker.sh
 
     log "Docker installed: $(docker --version || true)"
+  fi
+
+  if ! docker info >/dev/null 2>&1; then
+    log "Docker daemon not responding; attempting to start it"
+
+    if [[ -r /proc/1/comm ]] && [[ "$(cat /proc/1/comm)" == "systemd" ]] && have systemctl; then
+      as_root systemctl start docker || true
+    elif have service; then
+      as_root service docker start || true
+    fi
+
+    if ! docker info >/dev/null 2>&1 && have dockerd; then
+      log "Starting dockerd in background (no systemd detected)"
+      as_root sh -c 'nohup dockerd >/tmp/dockerd.log 2>&1 &'
+
+      local i
+      for i in {1..30}; do
+        docker info >/dev/null 2>&1 && break
+        sleep 1
+      done
+    fi
   fi
 
   DOCKER=(docker)
@@ -207,12 +230,21 @@ main() {
   ensure_docker
   ensure_compose
 
-  ensure_nvm
-  ensure_node
-  ensure_codex
+  if [[ "$SKIP_NODE_AND_CODEX" == "1" ]]; then
+    log "Skipping Node/Codex install (SKIP_NODE_AND_CODEX=1)"
+  else
+    ensure_nvm
+    ensure_node
+    ensure_codex
+  fi
 
   start_vm
-  wait_for_ssh_banner
+
+  if [[ "$WAIT_FOR_SSH" == "1" ]]; then
+    wait_for_ssh_banner
+  else
+    log "Skipping SSH wait (WAIT_FOR_SSH=$WAIT_FOR_SSH)"
+  fi
 
   log "Provisioning done"
 }

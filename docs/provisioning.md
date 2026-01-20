@@ -8,6 +8,18 @@ This repo can provision a full environment (Docker + nvm + Node.js + Codex CLI) 
 ./scripts/provision.sh
 ```
 
+## Local (Windows)
+
+```powershell
+pwsh -NoProfile -ExecutionPolicy Bypass -File ./scripts/provision-win.ps1
+```
+
+Notes:
+
+- The VM image (`dockurr/windows`) is a Linux container image. On Windows Server, Docker often runs in Windows-container mode only, so the script uses WSL2 to run the Linux Docker engine and start the VM.
+- By default, the Windows script sets `WAIT_FOR_SSH=0` so the VM can boot/install in the background; set `WAIT_FOR_SSH=1` if you want to block until SSH is reachable.
+- The Windows script also configures `netsh interface portproxy` so you can use `127.0.0.1:8006/5900/3389/2222` on the Windows host.
+
 Environment overrides:
 
 - `SYSTEM` (default: `win7`, options: `win7`, `win2022`)
@@ -18,6 +30,9 @@ Environment overrides:
 - `SSH_HOST` (default: `127.0.0.1`)
 - `SSH_PORT` (default: `2222`)
 - `SSH_TIMEOUT_SECONDS` (default: `7200`)
+- `WSL_DISTRO` (default: `Ubuntu`)
+- `WAIT_FOR_SSH` (default: `1` on Linux, `0` in `provision-win.ps1`)
+- `SKIP_NODE_AND_CODEX` (default: `0` on Linux, `1` in `provision-win.ps1`)
 
 Examples:
 

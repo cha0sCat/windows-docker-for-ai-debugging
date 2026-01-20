@@ -41,13 +41,18 @@ jobs:
           set -euo pipefail
           ./scripts/provision.sh
 
-      - name: Note for Windows runners
+      - name: Provision host + start VM (Windows)
         if: runner.os == 'Windows'
         shell: pwsh
+        env:
+          NODE_VERSION: "20"
+          SYSTEM: ${{ inputs.system }}
+          STOP_OTHER_SYSTEMS: "1"
+          WSL_DISTRO: "Ubuntu"
+          WAIT_FOR_SSH: "0"
+          SKIP_NODE_AND_CODEX: "1"
         run: |
-          Write-Host "Selected runner OS is Windows."
-          Write-Host "This repo's provisioning script is currently Linux-first (apt-get/get.docker.com + dockurr/windows)."
-          Write-Host "Use the tmate session below to set up Docker/WSL/Linux containers manually if needed."
+          ./scripts/provision-win.ps1
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
