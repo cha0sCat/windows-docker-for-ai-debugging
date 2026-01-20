@@ -34,26 +34,41 @@ ensure_pkg_tools() {
     as_root apt-get update
     as_root apt-get install -y --no-install-recommends ca-certificates curl git python3
   fi
+
+  for cmd in curl git python3; do
+    have "$cmd" || die "Missing required command: $cmd"
+  done
 }
 
 ensure_docker() {
   if have docker; then
     log "Docker found: $(docker --version || true)"
-    return 0
+  else
+    log "Docker not found; installing via get.docker.com"
+    ensure_pkg_tools
+
+    as_root sh -c 'curl -fsSL https://get.docker.com -o /tmp/get-docker.sh'
+    as_root sh /tmp/get-docker.sh
+
+    log "Docker installed: $(docker --version || true)"
   fi
 
-  log "Docker not found; installing via get.docker.com"
-  ensure_pkg_tools
+  DOCKER=(docker)
+  if ! docker info >/dev/null 2>&1; then
+    if have sudo; then
+      log "Docker not accessible; using sudo docker"
+      DOCKER=(sudo docker)
+    else
+      die "docker is installed but not accessible (need root/sudo or docker group access)"
+    fi
+  fi
 
-  as_root sh -c 'curl -fsSL https://get.docker.com -o /tmp/get-docker.sh'
-  as_root sh /tmp/get-docker.sh
-
-  log "Docker installed: $(docker --version || true)"
+  export DOCKER
 }
 
 ensure_compose() {
-  if docker compose version >/dev/null 2>&1; then
-    log "Docker Compose found: $(docker compose version | head -n 1)"
+  if "${DOCKER[@]}" compose version >/dev/null 2>&1; then
+    log "Docker Compose found: $("${DOCKER[@]}" compose version | head -n 1)"
     return 0
   fi
 
@@ -63,7 +78,7 @@ ensure_compose() {
     as_root apt-get install -y --no-install-recommends docker-compose-plugin
   fi
 
-  docker compose version >/dev/null 2>&1 || die "docker compose not available"
+  "${DOCKER[@]}" compose version >/dev/null 2>&1 || die "docker compose not available"
 }
 
 ensure_nvm() {
@@ -87,11 +102,11 @@ ensure_nvm() {
 }
 
 ensure_node() {
-  # nvm must already be loaded
   log "Installing Node.js $NODE_VERSION via nvm"
   nvm install "$NODE_VERSION"
   nvm use "$NODE_VERSION"
   nvm alias default "$NODE_VERSION" >/dev/null
+
   log "Node: $(node -v)"
   log "npm: $(npm -v)"
 }
@@ -99,28 +114,20 @@ ensure_node() {
 ensure_codex() {
   log "Installing Codex CLI: $CODEX_NPM_PKG"
 
-  if ! npm view "$CODEX_NPM_PKG" version >/dev/null 2>&1; then
-    die "npm package not found: $CODEX_NPM_PKG"
-  fi
+  npm view "$CODEX_NPM_PKG" version >/dev/null 2>&1 || die "npm package not found: $CODEX_NPM_PKG"
 
   npm install -g "$CODEX_NPM_PKG"
 
-  if have codex; then
-    log "Codex installed: $(codex --version 2>/dev/null || echo 'ok')"
-  else
-    die "codex binary not found after install"
-  fi
+  have codex || die "codex binary not found after install"
+  log "Codex installed: $(codex --version 2>/dev/null || echo 'ok')"
 }
 
 start_vm() {
   log "Starting VM via docker compose"
   cd "$ROOT_DIR"
 
-  ensure_docker
-  ensure_compose
-
-  docker compose up -d
-  docker compose ps
+  "${DOCKER[@]}" compose up -d
+  "${DOCKER[@]}" compose ps
 }
 
 wait_for_ssh_banner() {
@@ -159,8 +166,17 @@ PY
 }
 
 main() {
+  ensure_pkg_tools
+  ensure_docker
+  ensure_compose
+
+  ensure_nvm
+  ensure_node
+  ensure_codex
+
   start_vm
   wait_for_ssh_banner
+
   log "Provisioning done"
 }
 
