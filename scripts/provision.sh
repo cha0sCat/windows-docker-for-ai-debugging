@@ -63,7 +63,6 @@ ensure_docker() {
     fi
   fi
 
-  export DOCKER
 }
 
 ensure_compose() {
