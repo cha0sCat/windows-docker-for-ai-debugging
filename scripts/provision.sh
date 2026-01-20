@@ -3,6 +3,8 @@ set -Eeuo pipefail
 
 ROOT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)"
 
+: "${SYSTEM:=win7}"
+: "${STOP_OTHER_SYSTEMS:=1}"
 : "${NVM_VERSION:=v0.39.7}"
 : "${NODE_VERSION:=20}"
 : "${CODEX_NPM_PKG:=@openai/codex}"
@@ -18,6 +20,21 @@ die() {
 }
 
 have() { command -v "$1" >/dev/null 2>&1; }
+
+available_systems() {
+  local d
+  for d in "$ROOT_DIR/systems/"*; do
+    [[ -f "$d/compose.yml" ]] || continue
+    basename "$d"
+  done
+}
+
+resolve_system_dir() {
+  local system_dir="$ROOT_DIR/systems/$SYSTEM"
+  [[ -d "$system_dir" ]] || die "Unknown SYSTEM: $SYSTEM (available: $(available_systems | tr '\n' ' '))"
+  [[ -f "$system_dir/compose.yml" ]] || die "Missing compose.yml: $system_dir/compose.yml"
+  echo "$system_dir"
+}
 
 as_root() {
   if [[ "$(id -u)" == "0" ]]; then
@@ -80,6 +97,22 @@ ensure_compose() {
   "${DOCKER[@]}" compose version >/dev/null 2>&1 || die "docker compose not available"
 }
 
+stop_other_systems() {
+  [[ "$STOP_OTHER_SYSTEMS" == "1" ]] || return 0
+
+  local chosen_dir
+  chosen_dir="$(resolve_system_dir)"
+
+  local d
+  for d in "$ROOT_DIR/systems/"*; do
+    [[ -f "$d/compose.yml" ]] || continue
+    [[ "$d" == "$chosen_dir" ]] && continue
+
+    log "Stopping other system: $(basename "$d")"
+    (cd "$d" && "${DOCKER[@]}" compose down) || true
+  done
+}
+
 ensure_nvm() {
   export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
 
@@ -122,8 +155,13 @@ ensure_codex() {
 }
 
 start_vm() {
-  log "Starting VM via docker compose"
-  cd "$ROOT_DIR"
+  local system_dir
+  system_dir="$(resolve_system_dir)"
+
+  stop_other_systems
+
+  log "Starting VM via docker compose (SYSTEM=$SYSTEM)"
+  cd "$system_dir"
 
   "${DOCKER[@]}" compose up -d
   "${DOCKER[@]}" compose ps

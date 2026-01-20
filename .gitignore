@@ -1,10 +1,14 @@
 # Generated VM state / dynamic artifacts (DO NOT COMMIT)
 storage/*
 !storage/.gitkeep
+systems/**/storage/*
+!systems/**/storage/.gitkeep
 
 # Shared folder contents (test data)
 shared/*
 !shared/.gitkeep
+systems/**/shared/*
+!systems/**/shared/.gitkeep
 
 # Local logs / snapshots
 *.log

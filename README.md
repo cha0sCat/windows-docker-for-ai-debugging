@@ -1,38 +1,36 @@
-# Win7 + OpenSSH (dockur/windows)
+# windows-docker-for-ai-debugging
 
-This folder contains a ready-to-run setup for a Windows 7 VM inside Docker, using `dockurr/windows`, plus an automatic SSH server install via an OEM `install.bat`.
+Windows VMs inside Docker via `dockurr/windows`, with an automatic SSH server install (Win32-OpenSSH) using an OEM `install.bat`.
+
+## Systems
+
+- Windows 7: `systems/win7`
+- Windows Server 2022: `systems/win2022`
 
 ## Quick start
 
 ```bash
-cd /root/win7-ssh
+# pick one
+cd systems/win7
+# cd systems/win2022
+
 docker compose up -d
 ```
 
-Then connect:
+## Connect
+
+Ports are the same for both systems (stop one VM before starting the other):
 
 - Web noVNC: `http://127.0.0.1:8006`
 - Raw VNC: `127.0.0.1:5900`
 - RDP: `127.0.0.1:3389` (username `Docker`, password `admin`)
 - SSH: `ssh -p 2222 Docker@127.0.0.1` (password `admin`)
 
-## What gets installed
+## Repo layout
 
-- Win32-OpenSSH Server via `oem/OpenSSH-Win64-v9.5.0.0.msi`
-- Firewall rule for TCP/22
-- `sshd` service set to auto-start
+- `oem/`: shared OEM installer scripts (mounted into each VM).
+- `systems/*/storage/`: persistent VM disk/state (ignored by git).
+- `systems/*/shared/`: host folder exposed to Windows as `Shared` on the desktop (ignored by git).
+- `scripts/provision.sh`: installs Docker + nvm + Node 20 + Codex CLI, then starts the selected VM and waits for SSH.
 
-## Files
-
-- `compose.yml`: container + port mappings + volumes.
-- `oem/install.bat`: executed during the final stage of Windows automatic installation.
-- `storage/`: persistent VM disk/state.
-- `shared/`: host folder exposed to Windows as `Shared` on the desktop.
-
-## Notes
-
-- First run may take a while (ISO download + unattended install). State is persisted in `storage/`.
-- To reinstall from scratch: stop the container and delete `storage/`.
-- If auto-download is blocked, mount your own ISO: add `- ./win7.iso:/boot.iso` and keep `storage/` empty.
-- Copy files via SSH: `scp -P 2222 ./file Docker@127.0.0.1:Desktop/`
-- Or use the `Shared` desktop folder (maps to `./shared`).
+See `docs/provisioning.md` for the GitHub Actions workflow and environment options.

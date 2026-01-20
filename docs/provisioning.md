@@ -10,12 +10,24 @@ This repo can provision a full environment (Docker + nvm + Node.js + Codex CLI) 
 
 Environment overrides:
 
+- `SYSTEM` (default: `win7`, options: `win7`, `win2022`)
+- `STOP_OTHER_SYSTEMS` (default: `1`)
 - `NVM_VERSION` (default: `v0.39.7`)
 - `NODE_VERSION` (default: `20`)
 - `CODEX_NPM_PKG` (default: `@openai/codex`)
 - `SSH_HOST` (default: `127.0.0.1`)
 - `SSH_PORT` (default: `2222`)
 - `SSH_TIMEOUT_SECONDS` (default: `7200`)
+
+Examples:
+
+```bash
+# Win7
+SYSTEM=win7 ./scripts/provision.sh
+
+# Windows Server 2022
+SYSTEM=win2022 ./scripts/provision.sh
+```
 
 ## GitHub Actions
 

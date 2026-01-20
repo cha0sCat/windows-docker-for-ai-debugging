@@ -21,7 +21,7 @@ services:
       - "2222:22" # SSH -> Win7:22
     volumes:
       - ./storage:/storage
-      - ./oem:/oem
+      - ../../oem:/oem
       - ./shared:/shared
     restart: unless-stopped
     stop_grace_period: 2m

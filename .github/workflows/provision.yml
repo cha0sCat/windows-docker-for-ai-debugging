@@ -3,10 +3,14 @@ name: Provision Windows VM
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: Git ref to provision (e.g. master or win2022-server)
+      system:
+        description: Which Windows VM to start
+        type: choice
         required: true
-        default: master
+        default: win7
+        options:
+          - win7
+          - win2022
       ssh_timeout_minutes:
         description: Max minutes to wait for SSH
         required: true
@@ -21,13 +25,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.ref }}
           fetch-depth: 0
 
       - name: Provision host + start VM
         shell: bash
         env:
           NODE_VERSION: "20"
+          SYSTEM: ${{ inputs.system }}
+          STOP_OTHER_SYSTEMS: "1"
           SSH_TIMEOUT_SECONDS: ${{ fromJSON(inputs.ssh_timeout_minutes) * 60 }}
         run: |
           set -euo pipefail
