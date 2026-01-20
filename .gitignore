@@ -1,0 +1,16 @@
+# Generated VM state / dynamic artifacts (DO NOT COMMIT)
+storage/*
+!storage/.gitkeep
+
+# Shared folder contents (test data)
+shared/*
+!shared/.gitkeep
+
+# Local logs / snapshots
+*.log
+screen.jpg
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+*~

@@ -1,0 +1,27 @@
+services:
+  win7:
+    image: dockurr/windows:latest
+    container_name: win7
+    environment:
+      VERSION: "7u"
+      DISK_SIZE: "64G"
+      RAM_SIZE: "2G"
+      CPU_CORES: "2"
+      KVM: "N"
+      USER_PORTS: "22"
+    devices:
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "8006:8006" # web noVNC
+      - "5900:5900" # raw VNC
+      - "3389:3389/tcp" # RDP
+      - "3389:3389/udp" # RDP
+      - "2222:22" # SSH -> Win7:22
+    volumes:
+      - ./storage:/storage
+      - ./oem:/oem
+      - ./shared:/shared
+    restart: unless-stopped
+    stop_grace_period: 2m
