@@ -7,6 +7,13 @@ Windows VMs inside Docker via `dockurr/windows`, with an automatic SSH server in
 - Windows 7: `systems/win7`
 - Windows Server 2022: `systems/win2022`
 
+## GitHub Actions
+
+Use `.github/workflows/provision.yml` (manual dispatch):
+
+- `runs_on`: `ubuntu` or `win2022`
+- `system`: `win7` or `win2022`
+
 ## Quick start
 
 ```bash

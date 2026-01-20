@@ -36,3 +36,6 @@ A manual workflow is included at `.github/workflows/provision.yml`.
 Notes:
 
 - Running the Windows VM requires enough disk space and, ideally, `/dev/kvm` acceleration.
+- Workflow inputs:
+  - `runs_on`: `ubuntu` or `win2022`
+  - `system`: `win7` or `win2022`

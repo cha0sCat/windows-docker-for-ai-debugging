@@ -3,6 +3,14 @@ name: Provision Windows VM
 on:
   workflow_dispatch:
     inputs:
+      runs_on:
+        description: Runner OS to use
+        type: choice
+        required: true
+        default: ubuntu
+        options:
+          - ubuntu
+          - win2022
       system:
         description: Which Windows VM to start
         type: choice
@@ -14,7 +22,7 @@ on:
 
 jobs:
   provision:
-    runs-on: ubuntu-latest
+    runs-on: ${{ inputs.runs_on == 'ubuntu' && 'ubuntu-latest' || 'windows-2022' }}
 
     steps:
       - name: Checkout
@@ -22,7 +30,8 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Provision host + start VM
+      - name: Provision host + start VM (Linux)
+        if: runner.os == 'Linux'
         shell: bash
         env:
           NODE_VERSION: "20"
@@ -31,6 +40,14 @@ jobs:
         run: |
           set -euo pipefail
           ./scripts/provision.sh
+
+      - name: Note for Windows runners
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          Write-Host "Selected runner OS is Windows."
+          Write-Host "This repo's provisioning script is currently Linux-first (apt-get/get.docker.com + dockurr/windows)."
+          Write-Host "Use the tmate session below to set up Docker/WSL/Linux containers manually if needed."
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
