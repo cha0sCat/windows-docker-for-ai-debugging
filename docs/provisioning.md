@@ -35,5 +35,4 @@ A manual workflow is included at `.github/workflows/provision.yml`.
 
 Notes:
 
-- Running the Windows VM requires a host with enough disk space and, ideally, `/dev/kvm` acceleration.
-- GitHub-hosted runners typically do not have enough disk for Windows VM images; use a self-hosted runner.
+- Running the Windows VM requires enough disk space and, ideally, `/dev/kvm` acceleration.
