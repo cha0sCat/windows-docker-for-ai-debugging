@@ -49,7 +49,7 @@ jobs:
           SYSTEM: ${{ inputs.system }}
           STOP_OTHER_SYSTEMS: "1"
           WSL_DISTRO: "Ubuntu"
-          WAIT_FOR_SSH: "0"
+          WAIT_FOR_SSH: "1"
           SKIP_NODE_AND_CODEX: "1"
         run: |
           ./scripts/provision-win.ps1
