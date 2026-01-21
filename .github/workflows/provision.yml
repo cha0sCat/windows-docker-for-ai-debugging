@@ -19,6 +19,11 @@ on:
         options:
           - win7
           - win2022
+      wait_for_ssh:
+        description: Wait for windows docker ssh start
+        required: true
+        type: boolean
+        default: false
 
 jobs:
   provision:
@@ -49,8 +54,8 @@ jobs:
           SYSTEM: ${{ inputs.system }}
           STOP_OTHER_SYSTEMS: "1"
           WSL_DISTRO: "Ubuntu"
-          WAIT_FOR_SSH: "1"
-          SKIP_NODE_AND_CODEX: "1"
+          WAIT_FOR_SSH: ${{ inputs.wait_for_ssh && '1' || '0' }}
+          SKIP_NODE_AND_CODEX: "0"
         run: |
           ./scripts/provision-win.ps1
 
