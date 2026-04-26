@@ -18,8 +18,8 @@ msiexec /i "%MSI%" /qn /norestart ADDLOCAL=Server >> "%LOG%" 2>&1
 set "RC=!ERRORLEVEL!"
 echo [%DATE% %TIME%] msiexec exit code: !RC!>> "%LOG%"
 
-echo [%DATE% %TIME%] Ensuring Docker user is Administrator ...>> "%LOG%"
-net localgroup Administrators Docker /add >> "%LOG%" 2>&1
+rem NOTE: Removed adding a "Docker" user to Administrators.
+rem This script is intended to be run as Administrator, and does not create/manage users.
 
 echo [%DATE% %TIME%] Updating sshd_config and PATH ...>> "%LOG%"
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
